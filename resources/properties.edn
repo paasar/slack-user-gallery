@@ -1,0 +1,4 @@
+{:token "token"
+ :title "Slack users gallery"
+ :channel-id-general "channelId"
+ :ignored-users ["namebot" "nicknamebot" "lunchbot" "mtgbot" "zalgo" "slackbot" "subcurrent"]}
