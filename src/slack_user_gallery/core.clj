@@ -59,7 +59,7 @@
   "Get first joins from history of #general channel since each user is added there automatically.
    I asked Slack to add start time to user data, but in the mean time this was the
    suggested workaround.
-   1375315200 = Beginning of August or around when Slack was established."
+   1375315200 = Beginning of August 2013 or around when Slack was established."
   (let [options {:count "1000" :oldest "1375315200"}]
     (loop [hist (fetch-history options)
            join-history {}]
