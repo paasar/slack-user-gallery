@@ -3,12 +3,16 @@
             [clj-slack.channels :refer [history]]
             [clojure.edn :as edn]
             [clojure.string :refer [join replace split starts-with? trim]])
-  (:import [java.util Date])
+  (:import [java.text SimpleDateFormat]
+           [java.util Date])
   (:gen-class))
 
 (def properties (edn/read-string (slurp "resources/properties.edn")))
 
 (def connection {:api-url "https://slack.com/api" :token (:token properties)})
+
+(defn- format-date [date]
+  (.format (SimpleDateFormat. "yyyy-MM-dd") date))
 
 (defn fetch-users []
   (println "Fetching users.")
@@ -91,7 +95,7 @@
        "<div class=\"pic\"><img src=\"" pic "\"/></div>"
        "<div class=\"nick\">" nick "</div>"
        "<div class=\"real\">" real "</div>"
-       "<div class=\"start-time\">" start-time "</div>"
+       "<div class=\"start-time\">" (format-date start-time) "</div>"
        "</div>"))
 
 (defn render-html [user-tds]
