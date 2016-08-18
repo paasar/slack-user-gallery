@@ -95,7 +95,7 @@
        "<div class=\"pic\"><img src=\"" pic "\"/></div>"
        "<div class=\"nick\">" nick "</div>"
        "<div class=\"real\">" real "</div>"
-       "<div class=\"start-time\">" (format-date start-time) "</div>"
+       "<div class=\"start-time\">" (when start-time (format-date start-time)) "</div>"
        "</div>"))
 
 (defn render-html [user-tds]
