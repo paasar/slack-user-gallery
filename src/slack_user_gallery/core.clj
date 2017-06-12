@@ -98,10 +98,13 @@
        "<div class=\"start-time\">" (when start-time (format-date start-time)) "</div>"
        "</div>"))
 
-(defn render-html [user-tds]
+(defn render-html [user-cards]
   (println "Rendering HTML.")
-  (let [template (slurp "resources/template.html")]
+  (let [card-count (str (count user-cards))
+        user-tds (join "\n" user-cards)
+        template (slurp "resources/template.html")]
     (-> template
+        (replace #"COUNT" card-count)
         (replace #"TITLE" (:title properties))
         (replace #"UPDATE" (str (Date.)))
         (replace #"USER_LIST" user-tds))))
@@ -119,9 +122,9 @@
        (map second)
        (remove #(empty? (:nick %)))
        (map ->card)
-       (join "\n")
        render-html
        write-to-file))
 
 (defn -main []
   (generate-html (fetch-users) (get-start-times-from-general-history)))
+
