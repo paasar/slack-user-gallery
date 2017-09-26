@@ -74,7 +74,7 @@
           new-join-history)))))
 
 (defn interesting-data [{:keys [id name profile]}]
-  [id {:nick name
+  [id {:nick (or (:display_name profile) name)
        :real (:real_name profile)
        :pic (if-let [original (:image_original profile)]
               original
