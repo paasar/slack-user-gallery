@@ -84,7 +84,8 @@
   (->> user-data
        :members
        (remove #(or (:is_restricted %)
-                    (some (set [(:name %)]) (:ignored-users properties))))
+                    (:is_bot %)
+                    (some (set [(:name %) (-> % :profile :display_name)]) (:ignored-users properties))))
        (map interesting-data)))
 
 (defn add-start-times [join-history users]
