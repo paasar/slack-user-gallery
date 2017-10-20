@@ -84,6 +84,7 @@
   (->> user-data
        :members
        (remove #(or (:is_restricted %)
+                    (:deleted %)
                     (:is_bot %)
                     (some (set [(:name %) (-> % :profile :display_name)]) (:ignored-users properties))))
        (map interesting-data)))
