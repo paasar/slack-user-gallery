@@ -22,8 +22,9 @@
       (throw (Exception. (:error response))))
     response))
 
-(defn get-image-url [profile]
+(defn get-image-url
   "Sort by image size and take the biggest."
+  [profile]
   (->> profile
        (filter (fn [[k _]] (starts-with? (name k) "image")))
        (remove #(= (first %) :image_original))
@@ -59,11 +60,12 @@
       (throw (Exception. (:message response))))
     response))
 
-(defn get-start-times-from-general-history []
+(defn get-start-times-from-general-history
   "Get first joins from history of #general channel since each user is added there automatically.
    I asked Slack to add start time to user data, but in the mean time this was the
    suggested workaround.
    1375315200 = Beginning of August 2013 or around when Slack was established."
+  []
   (let [options {:count "1000" :oldest "1375315200"}]
     (loop [hist (fetch-history options)
            join-history {}]
