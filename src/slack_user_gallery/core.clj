@@ -108,10 +108,10 @@
         user-tds (join "\n" user-cards)
         template (slurp "resources/template.html")]
     (-> template
-        (string/replace #"COUNT" card-count)
-        (string/replace #"TITLE" (:title properties))
-        (string/replace #"UPDATE" (str (Date.)))
-        (string/replace #"USER_LIST" user-tds))))
+        (string/replace "COUNT" card-count)
+        (string/replace "TITLE" (:title properties))
+        (string/replace "UPDATE" (str (Date.)))
+        (string/replace "USER_LIST" user-tds))))
 
 (defn write-to-file [content]
   (spit "gallery.html" content :encoding "UTF-8"))
