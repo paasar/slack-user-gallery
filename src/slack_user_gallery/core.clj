@@ -1,10 +1,10 @@
 (ns slack-user-gallery.core
-  (:require [clj-slack.users :refer [list]]
-            [clj-slack.channels :refer [history]]
+  (:require [clj-slack.channels :as slack-channels]
+            [clj-slack.users :as slack-users]
             [clojure.edn :as edn]
-            [clojure.string :refer [join replace split starts-with? trim]])
-  (:import [java.text SimpleDateFormat]
-           [java.util Date])
+            [clojure.string :as string :refer [join split starts-with?]])
+  (:import (java.text SimpleDateFormat)
+           (java.util Date))
   (:gen-class))
 
 (def properties (edn/read-string (slurp "resources/properties.edn")))
@@ -16,7 +16,7 @@
 
 (defn fetch-users []
   (println "Fetching users.")
-  (let [response (list connection)
+  (let [response (slack-users/list connection)
         ok (:ok response)]
     (when-not ok
       (throw (Exception. (:error response))))
@@ -54,7 +54,7 @@
 
 (defn- fetch-history [options]
   (println (str "Fetching history of #general with " options))
-  (let [response (history connection (:channel-id-general properties) options)
+  (let [response (slack-channels/history connection (:channel-id-general properties) options)
         ok (:ok response)]
     (when-not ok
       (throw (Exception. (:message response))))
@@ -108,10 +108,10 @@
         user-tds (join "\n" user-cards)
         template (slurp "resources/template.html")]
     (-> template
-        (replace #"COUNT" card-count)
-        (replace #"TITLE" (:title properties))
-        (replace #"UPDATE" (str (Date.)))
-        (replace #"USER_LIST" user-tds))))
+        (string/replace #"COUNT" card-count)
+        (string/replace #"TITLE" (:title properties))
+        (string/replace #"UPDATE" (str (Date.)))
+        (string/replace #"USER_LIST" user-tds))))
 
 (defn write-to-file [content]
   (spit "gallery.html" content :encoding "UTF-8"))
@@ -131,4 +131,3 @@
 
 (defn -main []
   (generate-html (fetch-users) (get-start-times-from-general-history)))
-
