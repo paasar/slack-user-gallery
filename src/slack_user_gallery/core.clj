@@ -54,11 +54,10 @@
 
 (defn- fetch-history [options]
   (println (str "Fetching history of #general with " options))
-  (let [response (slack-channels/history connection (:channel-id-general properties) options)
-        ok (:ok response)]
-    (when-not ok
-      (throw (Exception. (:message response))))
-    response))
+  (let [{:keys [ok message] :as response} (slack-channels/history connection (:channel-id-general properties) options)]
+    (if ok
+      response
+      (throw (Exception. message)))))
 
 (defn get-start-times-from-general-history
   "Get first joins from history of #general channel since each user is added there automatically.
