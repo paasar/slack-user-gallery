@@ -14,13 +14,13 @@ You'll get the result as `gallery.html`.
 
 
 Get a token from here: https://api.slack.com/docs/oauth-test-tokens
+
 Get the id of the #general channel from here: https://api.slack.com/methods/channels.history/test
 
 ## TODO
 
   * Tests
-  * Replace search for join dates from channel history with get it straight from user data when Slack has added it there.
-  * Investigate how this handles users who has quit.
+  * Replace search for join dates from channel history with get it straight from user data when Slack has added it to their API.
 
 ## License
 
