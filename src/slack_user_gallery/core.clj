@@ -22,7 +22,7 @@
       (throw (Exception. (:error response))))
     response))
 
-(defn get-image-url
+(defn- get-image-url
   "Sort by image size and take the biggest."
   [profile]
   (->> profile
@@ -32,15 +32,18 @@
        first
        second))
 
-(defn add-new [m [k v]]
+(defn- add-new [m [k v]]
   (if-not (get m k)
     (assoc m k v)
     m))
 
-(defn get-first-joins [message-history]
+(defn- user-and-ts? [{:keys [user ts]}]
+  (and user ts))
+
+(defn- get-first-joins [message-history]
   (->> message-history
        :messages
-       (filter #(= "channel_join" (:subtype %)))
+       (filter user-and-ts?)
        (map (fn [{:keys [user ts]}]
               [user
                {:start-time (-> ts
@@ -59,6 +62,12 @@
       response
       (throw (Exception. message)))))
 
+(defn- merge-new-joins [acc new-joins]
+  (->> new-joins
+       (remove (fn [[k _]] (some? (acc k))))
+       (into {})
+       (merge acc)))
+
 (defn get-start-times-from-general-history
   "Get first joins from history of #general channel since each user is added there automatically.
    I asked Slack to add start time to user data, but in the mean time this was the
@@ -68,7 +77,7 @@
   (let [options {:count "1000" :oldest "1375315200"}]
     (loop [hist (fetch-history options)
            join-history {}]
-      (let [new-join-history (merge-with add-new join-history (get-first-joins hist))]
+      (let [new-join-history (merge-with merge-new-joins join-history (get-first-joins hist))]
         (if (:has_more hist)
           (recur (fetch-history (assoc options :oldest (->> hist :messages first :ts)))
                  new-join-history)
