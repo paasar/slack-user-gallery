@@ -40,18 +40,21 @@
 (defn- user-and-ts? [{:keys [user ts]}]
   (and user ts))
 
+(defn ->date [ts]
+  (-> ts
+      (split #"\.")
+      first
+      read-string
+      (* 1000)
+      (Date.)))
+
 (defn- get-first-joins [message-history]
   (->> message-history
        :messages
        (filter user-and-ts?)
        (map (fn [{:keys [user ts]}]
               [user
-               {:start-time (-> ts
-                                (split #"\.")
-                                first
-                                read-string
-                                (* 1000)
-                                (Date.))}]))
+               {:start-time (->date ts)}]))
        (sort-by (fn [[_ v]] (:start-time v)))
        (reduce add-new {})))
 
@@ -90,7 +93,7 @@
               original
               (get-image-url profile))}])
 
-(defn remove-restricted-and-ignored-then-get-interesting-data [user-data]
+(defn- remove-restricted-and-ignored-then-get-interesting-data [user-data]
   (->> user-data
        :members
        (remove #(or (:is_restricted %)
@@ -99,10 +102,10 @@
                     (some (set [(:name %) (-> % :profile :display_name)]) (:ignored-users properties))))
        (map interesting-data)))
 
-(defn add-start-times [join-history users]
+(defn- add-start-times [join-history users]
   (merge-with merge users join-history))
 
-(defn ->card [{:keys [nick real pic start-time]}]
+(defn- ->card [{:keys [nick real pic start-time]}]
   (str "<div class=\"card\">"
        "<div class=\"pic\"><img src=\"" pic "\"/></div>"
        "<div class=\"nick\">" nick "</div>"
@@ -110,32 +113,32 @@
        "<div class=\"start-time\">" (when start-time (format-date start-time)) "</div>"
        "</div>"))
 
-(defn render-html [user-cards]
+(defn render-html [user-data & [now]]
   (println "Rendering HTML.")
-  (let [card-count (str (count user-cards))
+  (let [user-cards (map ->card user-data)
+        card-count (str (count user-cards))
         user-tds (join "\n" user-cards)
         template (slurp "resources/template.html")]
     (-> template
         (string/replace "COUNT" card-count)
         (string/replace "TITLE" (:title properties))
-        (string/replace "UPDATE" (str (Date.)))
+        (string/replace "UPDATE" (str (or now (Date.))))
         (string/replace "USER_LIST" user-tds))))
 
-(defn write-to-file [content]
+(defn- write-to-file [content]
   (spit "gallery.html" content :encoding "UTF-8"))
 
-(defn generate-html [user-data start-times]
-  (->> user-data
+(defn create-user-data [users-from-slack start-times]
+  (->> users-from-slack
        remove-restricted-and-ignored-then-get-interesting-data
        (into {})
        (add-start-times start-times)
        (sort-by (fn [[_ v]] (:start-time v)))
        reverse
        (map second)
-       (remove #(empty? (:nick %)))
-       (map ->card)
-       render-html
-       write-to-file))
+       (remove #(empty? (:nick %)))))
 
 (defn -main []
-  (generate-html (fetch-users) (get-start-times-from-general-history)))
+  (-> (create-user-data (fetch-users) (get-start-times-from-general-history))
+      render-html
+      write-to-file))
