@@ -19,7 +19,6 @@ Get the id of the #general channel from here: https://api.slack.com/methods/chan
 
 ## TODO
 
-  * Tests
   * Replace search for join dates from channel history with get it straight from user data when Slack has added it to their API.
 
 ## License
