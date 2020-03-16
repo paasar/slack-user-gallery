@@ -4,18 +4,25 @@ A Clojure library designed to fetch Slack users from the Slack Web API and creat
 
 ## Usage
 
-Update token, title, channel id to `resources/properties.edn` and then run
+### Setup
+
+You need to [create a Slack App](https://api.slack.com/apps) to your workspace.
+Add following scopes to it: `channels:history`, `users.profile:read` and `users:read`.
+Then you can get the generated Bot User OAuth Access Token.
+
+Bot should be added to #general channel for it to access the join history.
+
+Get the id of the #general channel from [history endpoint test page](https://api.slack.com/methods/channels.history/test) by clicking the `#general` link in `channel` row.
+
+### Running
+
+After updating token, title and channel id to `resources/properties.edn` run
 
 ```
 lein run
 ```
 
 You'll get the result as `gallery.html`.
-
-
-Get a token from here: https://api.slack.com/docs/oauth-test-tokens
-
-Get the id of the #general channel from here: https://api.slack.com/methods/channels.history/test
 
 ## TODO
 
