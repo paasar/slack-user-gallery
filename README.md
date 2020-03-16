@@ -24,6 +24,14 @@ lein run
 
 You'll get the result as `gallery.html`.
 
+Result can be saved straight to jpg when run with following command
+
+```
+lein run jpg
+```
+
+Result is saved as `gallery.jpg`.
+
 ## TODO
 
   * Replace search for join dates from channel history with get it straight from user data when Slack has added it to their API.

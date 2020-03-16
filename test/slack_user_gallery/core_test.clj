@@ -84,3 +84,9 @@
     (is (= (slurp "test/resources/expected_gallery.html" :encoding "UTF-8")
            (render-html valid-user-data (->instant "1432100000.000000"))))))
 
+(deftest with-different-run-arguments
+  (let [usage-called-with (atom nil)]
+    (with-redefs [print-usage (fn [output] (reset! usage-called-with output))]
+      (testing "wrong parameter causes abnormal exit")
+        (generate-gallery "foo")
+        (is (= "foo" @usage-called-with)))))

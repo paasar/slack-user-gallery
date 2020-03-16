@@ -2,9 +2,12 @@
   (:require [clj-slack.channels :as slack-channels]
             [clj-slack.users :as slack-users]
             [clojure.edn :as edn]
-            [clojure.string :as string :refer [join split starts-with?]])
+            [clojure.java.io :refer [output-stream]]
+            [clojure.string :as string :refer [join split starts-with?]]
+            [slack-user-gallery.image :refer [render-image]])
   (:import (java.time Instant ZonedDateTime ZoneId)
-           (java.time.format DateTimeFormatter))
+           (java.time.format DateTimeFormatter)
+           (javax.imageio ImageIO))
   (:gen-class))
 
 (def properties (edn/read-string (slurp "resources/properties.edn")))
@@ -130,9 +133,6 @@
         (string/replace "UPDATE" (format-date-verbose (or now (Instant/now))))
         (string/replace "USER_LIST" user-tds))))
 
-(defn- write-to-file [content]
-  (spit "gallery.html" content :encoding "UTF-8"))
-
 (defn create-user-data [users-from-slack start-times]
   (->> users-from-slack
        remove-restricted-and-ignored-then-get-interesting-data
@@ -143,7 +143,29 @@
        (map second)
        (remove #(empty? (:nick %)))))
 
-(defn -main []
-  (-> (create-user-data (fetch-users) (get-start-times-from-general-history))
-      render-html
-      write-to-file))
+(defn- write-as-html-file [content]
+  (spit "gallery.html" content :encoding "UTF-8"))
+
+(defn- write-as-jpg-file [content]
+  (with-open [os (output-stream "gallery.jpg")]
+    (ImageIO/write (render-image content) "jpg" os)))
+
+(defn- select-output-fn [output]
+  (if (= output "jpg")
+    write-as-jpg-file
+    write-as-html-file))
+
+(defn print-usage [output]
+  (println (format "Unknown argument '%s'. Only 'jpg' is accepted." output))
+  (System/exit 1))
+
+(defn generate-gallery [output]
+  (if (and output (not= output "jpg"))
+    (print-usage output)
+    (let [output-fn (select-output-fn output)]
+      (-> (create-user-data (fetch-users) (get-start-times-from-general-history))
+          render-html
+          output-fn))))
+
+(defn -main [& [output]]
+  (generate-gallery output))
