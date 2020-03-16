@@ -22,11 +22,11 @@
 (def ^:private valid-user-data [{:nick "U2_DISPLAY_NAME"
                                  :real "U2_REAL_NAME"
                                  :pic "U2_IMAGE_ORIGINAL"
-                                 :start-time (->date "1404230000.000000")}
+                                 :start-time (->instant "1404230000.000000")}
                                 {:nick "U1_DISPLAY_NAME"
                                  :real "U1_REAL_NAME"
                                  :pic "U1_IMAGE_128"
-                                 :start-time (->date "1404219430.000000")}])
+                                 :start-time (->instant "1404219430.000000")}])
 
 (deftest with-ok-response-on-fetch-users
   (with-redefs [slack-users/list (constantly {:ok true :data {:stuff 1}})]
@@ -56,8 +56,8 @@
                                            (let [[fst & rst] @history]
                                              (reset! history rst)
                                              fst))]
-      (is (= {"USER1" {:start-time (->date "1404219430.000000")}
-              "USER2" {:start-time (->date "1404230000.000000")}}
+      (is (= {"USER1" {:start-time (->instant "1404219430.000000")}
+              "USER2" {:start-time (->instant "1404230000.000000")}}
              (get-start-times-from-general-history))))))
 
 (deftest with-invalid-history-response
@@ -82,5 +82,5 @@
 (deftest with-valid-user-data
   (testing "Should render HTML"
     (is (= (slurp "test/resources/expected_gallery.html" :encoding "UTF-8")
-           (render-html valid-user-data (->date "1432100000.000000"))))))
+           (render-html valid-user-data (->instant "1432100000.000000"))))))
 

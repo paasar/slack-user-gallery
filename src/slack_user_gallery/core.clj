@@ -3,16 +3,21 @@
             [clj-slack.users :as slack-users]
             [clojure.edn :as edn]
             [clojure.string :as string :refer [join split starts-with?]])
-  (:import (java.text SimpleDateFormat)
-           (java.util Date))
+  (:import (java.time Instant ZonedDateTime ZoneId)
+           (java.time.format DateTimeFormatter))
   (:gen-class))
 
 (def properties (edn/read-string (slurp "resources/properties.edn")))
 
 (def connection {:api-url "https://slack.com/api" :token (:token properties)})
 
-(defn- format-date [date]
-  (.format (SimpleDateFormat. "yyyy-MM-dd") date))
+(def ^:private UTC (ZoneId/of "UTC"))
+
+(defn- format-date [instant]
+  (.format DateTimeFormatter/ISO_LOCAL_DATE (ZonedDateTime/ofInstant instant UTC)))
+
+(defn- format-date-verbose [instant]
+  (.format DateTimeFormatter/RFC_1123_DATE_TIME (ZonedDateTime/ofInstant instant UTC)))
 
 (defn fetch-users []
   (println "Fetching users.")
@@ -40,13 +45,13 @@
 (defn- user-and-ts? [{:keys [user ts]}]
   (and user ts))
 
-(defn ->date [ts]
+(defn ->instant [ts]
   (-> ts
       (split #"\.")
       first
       read-string
       (* 1000)
-      (Date.)))
+      (Instant/ofEpochMilli)))
 
 (defn- get-first-joins [message-history]
   (->> message-history
@@ -54,7 +59,7 @@
        (filter user-and-ts?)
        (map (fn [{:keys [user ts]}]
               [user
-               {:start-time (->date ts)}]))
+               {:start-time (->instant ts)}]))
        (sort-by (fn [[_ v]] (:start-time v)))
        (reduce add-new {})))
 
@@ -122,7 +127,7 @@
     (-> template
         (string/replace "COUNT" card-count)
         (string/replace "TITLE" (:title properties))
-        (string/replace "UPDATE" (str (or now (Date.))))
+        (string/replace "UPDATE" (format-date-verbose (or now (Instant/now))))
         (string/replace "USER_LIST" user-tds))))
 
 (defn- write-to-file [content]
