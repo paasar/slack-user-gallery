@@ -2,7 +2,7 @@
   (:require [clj-slack.channels :as slack-channels]
             [clj-slack.users :as slack-users]
             [clojure.edn :as edn]
-            [clojure.java.io :refer [output-stream]]
+            [clojure.java.io :refer [output-stream resource]]
             [clojure.string :as string :refer [join split starts-with?]]
             [slack-user-gallery.image :refer [render-image]])
   (:import (java.time Instant ZonedDateTime ZoneId)
@@ -10,7 +10,7 @@
            (javax.imageio ImageIO))
   (:gen-class))
 
-(def properties (edn/read-string (slurp "resources/properties.edn")))
+(def properties (edn/read-string (slurp (resource "properties.edn"))))
 
 (def connection {:api-url "https://slack.com/api" :token (:token properties)})
 
@@ -126,7 +126,7 @@
   (let [user-cards (map ->card user-data)
         card-count (str (count user-cards))
         user-tds (join "\n" user-cards)
-        template (slurp "resources/template.html")]
+        template (slurp (resource "template.html"))]
     (-> template
         (string/replace "COUNT" card-count)
         (string/replace "TITLE" (:title properties))
@@ -159,13 +159,27 @@
   (println (format "Unknown argument '%s'. Only 'jpg' is accepted." output))
   (System/exit 1))
 
+(defn generate-gallery-html
+  "This is the main function that should be used when this program
+   is used as a library and desired output is HTML.
+
+   Returns HTML as a String."
+  []
+  (render-html (create-user-data (fetch-users) (get-start-times-from-general-history))))
+
+(defn generate-gallery-image
+  "This is the main function that should be used when this program
+   is used as a library and desired output is JPG.
+
+   Returns java.awt.image.BufferedImage."
+  []
+  (render-image (generate-gallery-html)))
+
 (defn generate-gallery [output]
   (if (and output (not= output "jpg"))
     (print-usage output)
     (let [output-fn (select-output-fn output)]
-      (-> (create-user-data (fetch-users) (get-start-times-from-general-history))
-          render-html
-          output-fn))))
+      (output-fn (generate-gallery-html)))))
 
 (defn -main [& [output]]
   (generate-gallery output))

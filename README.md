@@ -32,6 +32,15 @@ lein run jpg
 
 Result is saved as `gallery.jpg`.
 
+## Using as a library
+
+This program can be used as a library with the following steps.
+
+   1. Set correct values to `resources/properties.edn`.
+   1. Run `lein install` to create a package to your local dependency repository.
+   1. In the program using this declare dependency as `[slack-user-gallery "0.1.0"]`.
+   1. Require with `[slack-user-gallery.core :refer [generate-gallery-html generate-gallery-image]]`.
+
 ## TODO
 
   * Replace search for join dates from channel history with get it straight from user data when Slack has added it to their API.
