@@ -1,5 +1,5 @@
 (ns slack-user-gallery.core-test
-  (:require [clj-slack.channels :as slack-channels]
+  (:require [clj-slack.conversations :as conversations]
             [clj-slack.users :as slack-users]
             [clojure.test :refer :all]
             [slack-user-gallery.core :refer :all]))
@@ -52,28 +52,28 @@
                                     :ts "1404230000.000000"}
                                    {:user "USER1"
                                     :ts "1404230001.000000"}]}])]
-    (with-redefs [slack-channels/history (fn [& _]
-                                           (let [[fst & rst] @history]
-                                             (reset! history rst)
-                                             fst))]
+    (with-redefs [conversations/history (fn [& _]
+                                          (let [[fst & rst] @history]
+                                            (reset! history rst)
+                                            fst))]
       (is (= {"USER1" {:start-time (->instant "1404219430.000000")}
               "USER2" {:start-time (->instant "1404230000.000000")}}
              (get-start-times-from-general-history))))))
 
 (deftest with-invalid-history-response
-  (with-redefs [slack-channels/history (constantly {:ok false
-                                                    :message "Something went wrong"})]
+  (with-redefs [conversations/history (constantly {:ok false
+                                                   :message "Something went wrong"})]
     (testing "Exception is thrown with message in response"
       (is (thrown-with-msg? Exception #"Something went wrong"
                             (get-start-times-from-general-history))))))
 
 (deftest with-user-and-history-data
-  (with-redefs [slack-channels/history (constantly {:ok true
-                                                    :has_more false
-                                                    :messages [{:user "USER1"
-                                                                :ts "1404219430.000000"}
-                                                               {:user "USER2"
-                                                                :ts "1404230000.000000"}]})
+  (with-redefs [conversations/history (constantly {:ok true
+                                                   :has_more false
+                                                   :messages [{:user "USER1"
+                                                               :ts "1404219430.000000"}
+                                                              {:user "USER2"
+                                                               :ts "1404230000.000000"}]})
                 slack-users/list (constantly {:ok true
                                               :members members})]
     (is (= valid-user-data
@@ -87,6 +87,6 @@
 (deftest with-different-run-arguments
   (let [usage-called-with (atom nil)]
     (with-redefs [print-usage (fn [output] (reset! usage-called-with output))]
-      (testing "wrong parameter causes abnormal exit")
+      (testing "wrong parameter causes abnormal exit"
         (generate-gallery "foo")
-        (is (= "foo" @usage-called-with)))))
+        (is (= "foo" @usage-called-with))))))

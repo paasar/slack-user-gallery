@@ -1,5 +1,5 @@
 (ns slack-user-gallery.core
-  (:require [clj-slack.channels :as slack-channels]
+  (:require [clj-slack.conversations :as conversations]
             [clj-slack.users :as slack-users]
             [clojure.edn :as edn]
             [clojure.java.io :refer [output-stream resource]]
@@ -68,7 +68,7 @@
 
 (defn- fetch-history [options]
   (println (str "Fetching history of #general with " options))
-  (let [{:keys [ok message] :as response} (slack-channels/history connection (:channel-id-general properties) options)]
+  (let [{:keys [ok message] :as response} (conversations/history connection (:channel-id-general properties) options)]
     (if ok
       response
       (throw (Exception. message)))))
